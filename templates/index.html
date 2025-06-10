@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bild Galerie</title>
+</head>
+<body>
+    <h1>Bild Galerie</h1>
+
+    {% if current_user.is_authenticated %}
+        Hallo {{ current_user.username }} | <a href="{{ url_for('upload') }}">Bild hochladen</a> | <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+        <a href="{{ url_for('login') }}">Login mit GitHub</a>
+    {% endif %}
+
+    <hr>
+
+    {% for img in images %}
+        <div style="border:1px solid #ccc; margin: 10px; padding:10px;">
+            <a href="{{ url_for('image_detail', image_id=img.id) }}">
+                <img src="{{ url_for('uploaded_file', filename=img.filename) }}" alt="" style="max-width:200px;">
+            </a>
+            <p>{{ img.description }}</p>
+            <p>Von: {{ img.user.username }}</p>
+
+            {% if current_user.is_authenticated and current_user.id == img.user_id %}
+                <form method="POST" action="{{ url_for('delete_image', image_id=img.id) }}" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Willst du das Bild wirklich löschen?')">Löschen</button>
+                </form>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Keine Bilder hochgeladen.</p>
+    {% endfor %}
+</body>
+</html>
