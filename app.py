@@ -25,7 +25,7 @@ login_manager.login_view = 'github.login'
 # OAuth2 GitHub Setup
 github_blueprint = make_github_blueprint(
     client_id="Ov23lil7dDdZMAaJlxO0",
-    client_secret="3bff38f5d69fdbc66b773b9309f56d602d3efd2f",
+    client_secret="3bff38f5d69fdbc66b773b9309f56d602d3efd2f",  #sollte offensichtlich bei einer realen webapp nicht ins repo gepushed werden
 )
 app.register_blueprint(github_blueprint, url_prefix="/login")
 
