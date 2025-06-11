@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_dance.contrib.github import make_github_blueprint, github
 from werkzeug.utils import secure_filename
+from ai import classify_image
 
 app = Flask(__name__)
 app.secret_key = "supersekret"  # Für Produktion: Umgebungsvariable nutzen
@@ -41,6 +42,11 @@ class Image(db.Model):
     description = db.Column(db.String(500))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User', backref='images')
+    
+    # NEU: KI-Klassifikation und Erklärung
+    prediction = db.Column(db.String(100), nullable=True)
+    explanation = db.Column(db.Text, nullable=True)
+
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -102,12 +108,25 @@ def upload():
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
-            img = Image(filename=filename, description=description, user_id=current_user.id)
+
+            # KI-Klassifikation aufrufen
+            prediction, explanation = classify_image(filepath)
+
+            # Bild inkl. Klassifikation speichern
+            img = Image(
+                filename=filename,
+                description=description,
+                user_id=current_user.id,
+                prediction=prediction,
+                explanation=explanation
+            )
             db.session.add(img)
             db.session.commit()
-            flash("Bild erfolgreich hochgeladen", "success")
+
+            flash("Bild erfolgreich hochgeladen und klassifiziert", "success")
             return redirect(url_for("index"))
     return render_template("upload.html")
+
 
 @app.route("/uploads/<filename>")
 def uploaded_file(filename):
